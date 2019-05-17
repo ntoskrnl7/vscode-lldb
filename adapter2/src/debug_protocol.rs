@@ -82,6 +82,8 @@ pub enum RequestArguments {
     disconnect(DisconnectArguments),
     // Custom
     displaySettings(DisplaySettingsArguments),
+    jump(JumpArguments),
+
     // Reverse
     runInTerminal(RunInTerminalRequestArguments),
 }
@@ -116,6 +118,7 @@ pub enum ResponseBody {
     disconnect,
     // Custom
     displaySettings,
+    jump,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -217,6 +220,13 @@ pub struct DisplaySettingsArguments {
     pub show_disassembly: Option<ShowDisassembly>,
     pub dereference_pointers: Option<bool>,
     pub container_summary: Option<bool>,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct JumpArguments {
+    pub path: String,
+    pub line: u32,
 }
 
 #[derive(Serialize, Deserialize, Debug, Copy, Clone)]

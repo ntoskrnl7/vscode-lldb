@@ -88,6 +88,11 @@ impl SBThread {
             return self->StepOut();
         })
     }
+    pub fn jump_to_line(&self, file: &SBFileSpec, line: u32) -> SBError {
+        cpp!(unsafe [self as "SBThread*", file as "SBFileSpec*", line as "uint32_t"] -> SBError as "SBError" {
+            return self->JumpToLine(*file, line);
+        })
+    }
     pub fn step_instruction(&self, step_over: bool) {
         cpp!(unsafe [self as "SBThread*", step_over as "bool"] {
             return self->StepInstruction(step_over);

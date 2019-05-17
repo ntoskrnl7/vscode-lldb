@@ -44,6 +44,7 @@ class Extension implements DebugConfigurationProvider, DebugAdapterDescriptorFac
         subscriptions.push(commands.registerCommand('lldb.pickProcess', () => this.pickProcess(false)));
         subscriptions.push(commands.registerCommand('lldb.pickMyProcess', () => this.pickProcess(true)));
         subscriptions.push(commands.registerCommand('lldb.changeDisplaySettings', () => this.changeDisplaySettings()));
+        subscriptions.push(commands.registerCommand('lldb.setNextStatement', () => this.setNextStatement()));
 
         subscriptions.push(workspace.onDidChangeConfiguration(event => {
             if (event.affectsConfiguration('lldb.displayFormat') ||
@@ -118,6 +119,45 @@ class Extension implements DebugConfigurationProvider, DebugAdapterDescriptorFac
 
         if (debug.activeDebugSession && debug.activeDebugSession.type == 'lldb') {
             await debug.activeDebugSession.customRequest('displaySettings', settings);
+        }
+    }
+
+    async setNextStatement() {
+        try {
+            const debugSession = debug.activeDebugSession;
+            if (!debugSession) {
+                throw new Error("There isn't an active CodeLLDB debug session.");
+            }
+
+            const debugType: string = debugSession.type;
+            if (debugType !== "lldb") {
+                throw new Error("There isn't an active CodeLLDB debug session.");
+            }
+
+            const currentEditor = window.activeTextEditor;
+            if (!currentEditor) {
+                throw new Error("There isn't an active source file.");
+            }
+
+            const position = currentEditor.selection.active;
+            if (!position) {
+                throw new Error("There isn't a current source position.");
+            }
+
+            const currentDocument = currentEditor.document;
+            if (currentDocument.isDirty) {
+                throw new Error("The current document has unsaved edits.");
+            }
+
+            const jumpArg = {
+                path: currentDocument.uri.fsPath,
+                line: position.line + 1
+            };
+
+            await debugSession.customRequest('jump', jumpArg);
+        }
+        catch (err) {
+            window.showErrorMessage(`Unable to set the next statement. ${err}`);
         }
     }
 

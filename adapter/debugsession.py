@@ -1295,6 +1295,14 @@ class DebugSession:
         self.update_display_settings(args)
         self.refresh_client_display()
 
+    def DEBUG_jump(self, args):
+        self.before_resume()
+        filespec = lldb.SBFileSpec()
+        filespec.SetDirectory(str(os.path.dirname(args['path'].replace("\\",'/'))))
+        filespec.SetFilename(str(os.path.basename(args['path'].replace("\\",'/'))))
+        thread = self.process.GetSelectedThread()
+        thread.JumpToLine(filespec, args['line'])
+
     def update_display_settings(self, settings):
         if not settings: return
 

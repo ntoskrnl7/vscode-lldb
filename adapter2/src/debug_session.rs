@@ -301,6 +301,9 @@ impl DebugSession {
                 RequestArguments::displaySettings(args) =>
                     self.handle_display_settings(args)
                         .map(|_| ResponseBody::displaySettings),
+                RequestArguments::jump(args) =>
+                    self.handle_jump(args)
+                        .map(|_| ResponseBody::jump),
                 _ => {
                     //error!("No handler for request message: {:?}", request);
                     Err(Error::Internal("Not implemented.".into()))
@@ -2043,6 +2046,19 @@ impl DebugSession {
             all_threads_stopped: Some(true),
             ..Default::default()
         }));
+    }
+
+    fn handle_jump(&mut self, args: JumpArguments) -> Result<(), Error> {
+        let thread  = self.process.selected_thread();
+        let error: lldb::SBError =
+            thread.jump_to_line(
+                &lldb::SBFileSpec::from(Path::new(&args.path)),
+                args.line as u32);
+         if error.is_success() {
+            Ok(())
+        } else {
+            Err(Error::from(error))
+        }
     }
 
     fn before_resume(&mut self) {
